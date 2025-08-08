@@ -1,0 +1,172 @@
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation de Physique Avancée</title>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+    
+</head>
+<body>
+    <div id="app-container">
+        <button id="guideBtn">Guide d'utilisation</button>
+        <h1>Analyse graphique de la cinématique</h1>
+        <p style="text-align: center; margin-top: -10px; margin-bottom: 20px; font-size: 14px; color: var(--text-secondary); opacity: 0.8;">
+            Simulation conçue par Christian Gourdeau pour <a href="https://www.youtube.com/@laphysiquealachaine5938" target="_blank" style="color: white; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">La physique à la chaîne. <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#FF0000" d="M21.582,6.186c-0.23-0.854-0.908-1.532-1.762-1.762C18.254,4,12,4,12,4S5.746,4,4.18,4.424c-0.854,0.23-1.532,0.908-1.762,1.762C2,7.754,2,12,2,12s0,4.246,0.418,5.814c0.23,0.854,0.908,1.532,1.762,1.762C5.746,20,12,20,12,20s6.254,0,7.82-0.424c0.854-0.23,1.532-0.908,1.762-1.762C22,16.246,22,12,22,12S22,7.754,21.582,6.186z"></path><path fill="#FFFFFF" d="M10,15.464V8.536L16,12L10,15.464z"></path></svg></a>
+        </p>
+        <div class="top-controls">
+            <div class="control-group">
+                 <label for="tMaxInput">t&#x2098;&#x2090;&#x2093; (s) :</label>
+                 <input type="number" id="tMaxInput" value="40" step="1">
+            </div>
+            <div class="control-group">
+                 <label for="vMaxInput">v&#x2098;&#x2090;&#x2093; (m/s) :</label>
+                 <input type="number" id="vMaxInput" value="20" step="1">
+            </div>
+            <div class="control-group">
+                 <label for="dragStepXInput">Pas horizontal (s):</label>
+                 <input type="number" id="dragStepXInput" value="1" step="0.1">
+            </div>
+             <div class="control-group">
+                 <label for="dragStepYInput">Pas vertical (m/s):</label>
+                 <input type="number" id="dragStepYInput" value="1" step="0.1">
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="column">
+                <div class="chart-box graph" id="velocity-chart-container">
+                    <div class="chart-controls">
+                        <div class="control-group">
+                            <label>Nb. points :</label>
+                            <select id="nbPoints"><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option></select>
+                        </div>
+                    </div>
+                    <canvas id="velocity-chart"></canvas>
+                </div>
+                <div class="chart-box graph" id="acceleration-chart-container">
+                    <canvas id="acceleration-chart"></canvas>
+                </div>
+                <div class="chart-box" id="narrative-container">
+                    <h4 class="narrative-title">Description du Mouvement</h4>
+                    <div id="narrative-text"></div>
+                </div>
+            </div>
+            <div class="column">
+                <div class="chart-box graph" id="position-chart-container">
+                     <div class="chart-controls">
+                        <div class="control-group">
+                            <label for="x0Input">x&#x2080; (m) :</label>
+                            <input type="number" id="x0Input" value="0" step="1">
+                        </div>
+                    </div>
+                    <canvas id="position-chart"></canvas>
+                </div>
+                <div id="analysis-container">
+                    <h4 class="analysis-title">Analyse du mouvement</h4>
+                    <div id="analysis" class="tab-content">
+                        <div id="analysis-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="simulation-container">
+            <div class="simulation-header">
+                <h3>Animation du Mouvement</h3>
+                <div class="vector-toggles">
+                    <label><input type="checkbox" id="showVelVectorCheckbox" checked> Vitesse</label>
+                    <label><input type="checkbox" id="showAccelVectorCheckbox"> Accélération</label>
+                </div>
+            </div>
+            <div id="simulation-chart-container">
+                <canvas id="simulation-chart"></canvas>
+            </div>
+            <div class="simulation-controls-grid">
+                <div class="sim-buttons">
+                    <button id="playBtn" title="Lancer"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg></button>
+                    <button id="stopBtn" title="Arrêter"><svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"></path></svg></button>
+                </div>
+                <input type="range" id="simTimeSlider" min="0" value="0" step="0.1">
+            </div>
+             <div class="slider-group">
+                <label>Rapidité:</label>
+                <input type="range" id="simSpeedSlider" min="0.25" max="10" value="4" step="0.25">
+                <output id="simSpeedReadout">4.00x</output>
+            </div>
+            <div class="simulation-readout-boxes">
+                <div class="readout-box">
+                    <div class="label">Temps</div>
+                    <div class="value" id="readout-time">0.00&nbsp;s</div>
+                </div>
+                <div class="readout-box">
+                    <div class="label">Position</div>
+                    <div class="value" id="readout-pos"><strong>0.00&nbsp;m</strong></div>
+                </div>
+                <div class="readout-box">
+                    <div class="label">Vitesse</div>
+                    <div class="value" id="readout-vel"><strong>0.00&nbsp;m/s</strong></div>
+                </div>
+                <div class="readout-box">
+                    <div class="label">Accélération</div>
+                    <div class="value" id="readout-accel">0.00&nbsp;m/s²</div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    <p style="text-align: center; margin-top: 20px; color: var(--text-secondary); font-size: 12px;">
+        Programmation réalisée avec l'aide de Google AI Studio.
+    </p>
+
+    <!-- Fenêtre modale pour le guide -->
+    <div id="guideModal" class="modal-backdrop" style="display: none;">
+        <div class="modal-content">
+            <button id="closeGuideBtn" class="modal-close">&times;</button>
+            <h2>Guide d'utilisation</h2>
+            <div class="modal-body">
+                <h3>Objectif de la simulation</h3>
+                <p>Cette application permet d'étudier la cinématique à une dimension (mouvement rectiligne) en créant un graphique de la <strong>vitesse en fonction du temps</strong> et en observant les graphiques de la <strong>position</strong> et de <strong>l'accélération</strong> qui en résultent, ainsi qu'une analyse numérique détaillée et une animation du mouvement.</p>
+            
+                <h3>1. Le graphique de vitesse (le cœur de l'outil)</h3>
+                <p>C'est ici que tout commence. Vous définissez le mouvement en manipulant ce graphique :</p>
+                <ul>
+                    <li><strong>Modifier le mouvement :</strong> Cliquez et déplacez les points sur le graphique pour changer la vitesse à des instants donnés. Le reste de l'application se mettra à jour instantanément.</li>
+                    <li><strong>Contraintes :</strong> Le premier point est toujours à <code>t=0s</code>. Les points ne peuvent pas se croiser horizontalement.</li>
+                    <li><strong>Nombre de points :</strong> Utilisez le menu déroulant <code>Nb. points</code> pour choisir la complexité du mouvement (de 2 à 8 points).</li>
+                    <li><strong>Pas de la grille :</strong> Les contrôles <code>Pas horizontal</code> et <code>Pas vertical</code> définissent la "grille magnétique" sur laquelle les points se placent, permettant un ajustement précis.</li>
+                </ul>
+            
+                <h3>2. Graphiques dérivés et animation</h3>
+                <ul>
+                    <li><strong>Graphique de Position :</strong> Il montre la position (<code>x</code>) de la particule au fil du temps. Il est calculé par intégration du graphique de vitesse. Vous pouvez définir la position initiale <code>x₀</code>.</li>
+                    <li><strong>Graphique d'Accélération :</strong> Il montre l'accélération (<code>a</code>) de la particule, qui est constante par morceaux. Elle est calculée comme la pente de chaque segment du graphique de vitesse.</li>
+                    <li><strong>Animation :</strong> La section du bas anime le mouvement de la particule sur un axe horizontal. Utilisez les boutons <code>Lecture</code>/<code>Arrêt</code>/<code>Réinitialiser</code> et le curseur de temps pour explorer le mouvement. Vous pouvez afficher/cacher les vecteurs vitesse et accélération.</li>
+                </ul>
+            
+                <h3>3. Description et analyse</h3>
+                <ul>
+                    <li><strong>Description du Mouvement :</strong> Ce bloc de texte génère une description littérale du mouvement de la particule, comme si vous racontiez une histoire.</li>
+                    <li><strong>Analyse du mouvement :</strong> Ce panneau contient une analyse quantitative complète, incluant la distance totale, le déplacement, les positions et vitesses extrêmes, ainsi que les instants et intervalles où des conditions spécifiques sont remplies (ex: vitesse nulle, accélération positive, etc.).</li>
+                </ul>
+                
+                <h3>4. Outils d'analyse interactifs</h3>
+                <p>Cliquez directement sur les graphiques pour activer des outils d'analyse visuels :</p>
+                <ul>
+                    <li>
+                        <strong>Sur le graphique de Position (<code>x</code> vs <code>t</code>) :</strong>
+                        <p>Cliquez et maintenez pour afficher la <strong>tangente</strong> à la courbe. La pente de cette tangente correspond à la <strong>vitesse instantanée</strong> à cet instant, dont la valeur est affichée.</p>
+                    </li>
+                    <li>
+                        <strong>Sur le graphique de Vitesse (<code>v</code> vs <code>t</code>) :</strong>
+                        <p>Cliquez une première fois pour définir un instant <code>t₁</code>, puis une seconde fois pour définir <code>t₂</code>. L'application mettra en évidence l'<strong>aire sous la courbe</strong> entre ces deux instants. Cette aire représente le <strong>déplacement (Δx)</strong>. La distance parcourue (Δs), qui tient compte des changements de direction, est également calculée.</p>
+                    </li>
+                    <li>
+                        <strong>Sur le graphique d'Accélération (<code>a</code> vs <code>t</code>) :</strong>
+                        <p>De la même manière, cliquez à deux reprises pour sélectionner un intervalle de temps. L'aire sous la courbe calculée représente la <strong>variation de vitesse (Δv)</strong> durant cet intervalle.</p>
+                    </li>
+                </ul>
+                <p><em>Pour désactiver un outil interactif, cliquez n'importe où sur un autre graphique ou cliquez une troisième fois si un intervalle est déjà sélectionné.</em></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

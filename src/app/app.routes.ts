@@ -1,15 +1,15 @@
 import { RouterModule, Routes } from '@angular/router';
-import { CardComponent } from './card/card.component';
 import { NgModule } from '@angular/core';
-import { ElementComponent } from './element/element.component';
+import { CinematiqueComponent } from './cinematique/cinematique.component';
+import { CoulombComponent } from './coulomb/coulomb.component';
+import { SourceLaserComponent } from './source-laser/source-laser.component';
+import { SourcePoncComponent } from './source-ponc/source-ponc.component';
+import { HomeComponent } from './home/home.component';
 
 export const routes: Routes = [
-  { path: '', component: CardComponent },
-  { path: 'element/:id', component: ElementComponent }
+  { path: '', component: HomeComponent },
+  { path: 'cinematique', component: CinematiqueComponent },
+  { path: 'coulomb', component: CoulombComponent },
+  { path: 'source-ponc', component: SourcePoncComponent },
+  { path: 'source-laser', component: SourceLaserComponent },
 ];
-
-@NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
-})
-export class AppRoutingModule { }

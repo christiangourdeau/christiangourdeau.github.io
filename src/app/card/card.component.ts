@@ -9,11 +9,11 @@ import { Card } from '../card.model';
   standalone: true
 })
 export class CardComponent {
-  @Input() card: Card = { id: 0, title: '', description: '', imageUrl: '' };
+  @Input() card: Card = { id: '', title: '', description: '', imageUrl: '' };
 
   constructor(private router: Router) {}
 
   navigateToDetail() {
-    this.router.navigate(['/element', this.card.id]);
+    this.router.navigate(['/', this.card.id]);
   }
 }
