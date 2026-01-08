@@ -12,9 +12,9 @@ import { CommonModule } from '@angular/common';
 })
 export class HomeComponent {
   cards: Card[] = [
-    { id: 'cinematique', title: '', description: '', imageUrl: 'cards/cinematique.jpg' },
-    { id: 'coulomb', title: '', description: '', imageUrl: 'cards/coulomb.jpg' },
-    { id: 'source-laser', title: '', description: '', imageUrl: 'cards/source_laser.jpg' },
-    { id: 'source-ponc', title: '', description: '', imageUrl: 'cards/source_ponc.jpg' },
+    { file: 'analyse_cinematique.html', title: '', description: '', imageUrl: 'cards/cinematique.jpg' },
+    { file: 'loi_coulomb.html', title: '', description: '', imageUrl: 'cards/coulomb.jpg' },
+    { file: 'source_laser.html', title: '', description: '', imageUrl: 'cards/source_laser.jpg' },
+    { file: 'source_ponc.html', title: '', description: '', imageUrl: 'cards/source_ponc.jpg' },
   ]
 }

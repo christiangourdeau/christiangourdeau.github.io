@@ -9,7 +9,8 @@ import { Component } from '@angular/core';
 export class CinematiqueComponent {
   myScriptElement: HTMLScriptElement;
 
-  constructor() {
+  constructor()
+  {
     this.myScriptElement = document.createElement("script");
     this.myScriptElement.src = "scripts/cinematique.js";
     document.body.appendChild(this.myScriptElement);
