@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation de Physique : Source Laser</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+        :root {
+            --bg-color: #1a1a2e;
+            --primary-color: #e94560;
+            --secondary-color: #0f3460;
+            --text-color: #e0e0e0;
+            --light-text-color: #a0a0c0;
+            --canvas-bg: #16213e;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 30px 20px;
+            box-sizing: border-box;
+        }
+
+        .page-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 1920px;
+        }
+        
+        .main-title {
+            color: white;
+            font-weight: 600;
+            font-size: 2em;
+            text-align: center;
+            margin-bottom: 0;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 3.5fr 1fr; 
+            gap: 30px;
+            width: 100%;
+            align-items: stretch; 
+        }
+
+        .panel {
+            background-color: var(--secondary-color);
+            padding: 20px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .simulation-container {
+             position: relative;
+             padding: 0;
+             background-color: transparent;
+             box-shadow: none;
+        }
+        
+        h2 {
+            text-align: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.2em;
+            margin-top: 0;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            color: var(--text-color);
+            font-size: 1.1em;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        h3:first-of-type {
+            margin-top: 0;
+        }
+
+        canvas {
+            background-color: var(--canvas-bg);
+            border-radius: 15px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+            width: 100%;
+            height: auto;
+            aspect-ratio: 4/3;
+            display: block;
+        }
+
+        .controls .control-group { margin-bottom: 15px; }
+        .controls label { display: block; margin-bottom: 8px; }
+        .value-display {
+            display: block; text-align: center; font-weight: 600;
+            color: var(--light-text-color); background-color: rgba(0,0,0,0.2);
+            padding: 4px 8px; border-radius: 5px; font-size: 0.9em;
+        }
+        .value-display span { color: white; font-weight: 600; }
+        
+        input[type="range"] {
+            -webkit-appearance: none; width: 100%; height: 8px;
+            background: rgba(255, 255, 255, 0.2); border-radius: 5px;
+            outline: none; cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 20px; height: 20px; background: var(--primary-color);
+            border-radius: 50%; border: 3px solid var(--bg-color);
+            box-shadow: 0 0 5px var(--primary-color);
+        }
+        
+        .result-item { margin-bottom: 22px; text-align: center; }
+        .result-item:last-child { margin-bottom: 0; }
+        .result-title { margin: 0; font-size: 1.1em; color: var(--text-color); font-weight: 400; }
+        .formula { display: block; font-size: 1.1em; color: var(--light-text-color); letter-spacing: 1px; margin-top: 8px; }
+        .value-box-container { margin-top: 10px; }
+        .value-box { 
+            font-family: 'Poppins', sans-serif; font-weight: 600; color: white; 
+            padding: 5px 15px; background-color: rgba(233, 69, 96, 0.8); 
+            border-radius: 8px; display: inline-block; min-width: 150px;
+        }
+        
+        i { font-style: italic; }
+        sub, sup { font-size: 0.8em; }
+        
+        .duration-selector { display: flex; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; overflow: hidden; }
+        .duration-selector input[type="radio"] { display: none; }
+        .duration-selector label {
+            flex: 1; padding: 8px 5px; margin: 0; text-align: center; cursor: pointer;
+            font-size: 0.9em; transition: background-color 0.3s, color 0.3s;
+        }
+        .duration-selector input[type="radio"]:checked + label { background-color: var(--primary-color); color: white; font-weight: 600; }
+        
+        .hidden { display: none !important; }
+        
+        .toggle-switch-container { display: flex; align-items: center; margin-bottom: 20px; }
+        .toggle-switch-container label { margin: 0; margin-right: 15px; }
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 28px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(22px); }
+        
+        .overlay-panel {
+            position: absolute; background: rgba(15, 52, 96, 0.75);
+            backdrop-filter: blur(8px); border-radius: 15px;
+            padding: 15px 25px; border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .overlay-panel h3 { margin: 0 0 15px 0; padding-bottom: 8px; text-align: center; }
+        .overlay-panel .control-group { margin-bottom: 0; }
+        .overlay-panel label { text-align: center; color: white; margin-bottom: 6px; }
+
+        .overlay-top-left { top: 20px; left: 20px; width: 250px; }
+        .overlay-top-right { 
+            top: 20px; right: 20px; width: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 125px;
+        }
+        .overlay-top-right .overlay-results-grid { display: flex; gap: 20px; }
+        .overlay-top-right .result-item { flex: 1; margin-bottom: 0; }
+        .overlay-top-right .result-title { font-size: 1em; }
+        .overlay-top-right .formula { font-size: 0.9em; margin-top: 5px;}
+        .overlay-top-right .value-box { margin-top: 8px; padding: 4px 12px; font-size: 0.95em; min-width: 140px; }
+        
+        .overlay-bottom-center {
+            bottom: 20px; 
+            left: 50%; transform: translateX(-50%);
+            display: flex; gap: 20px; align-items: flex-end; padding: 15px 20px;
+        }
+        .overlay-bottom-center .control-group { width: 180px; margin-bottom: 0; }
+        .overlay-bottom-center .duration-control { width: 300px; }
+        .duration-control > label { text-align: center; }
+
+        @media (max-width: 1400px) { .container { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .overlay-top-left, .overlay-top-right { width: calc(100% - 40px); margin-bottom: 10px; min-height: 0; }
+            .overlay-top-right .overlay-results-grid { flex-direction: column; gap: 15px; }
+            .overlay-bottom-center { flex-direction: column; align-items: stretch; width: calc(100% - 40px); }
+            .overlay-bottom-center .control-group { width: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-wrapper">
+        <h1 class="main-title">Énergie, puissance et intensité pour une source laser</h1>
+        <p style="text-align: center; margin-top: -10px; margin-bottom: 20px; font-size: 14px; color: var(--light-text-color); opacity: 0.8;">
+            Simulation conçue par Christian Gourdeau pour <a href="https://www.youtube.com/@laphysiquealachaine5938" target="_blank" style="color: white; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">La physique à la chaîne.<svg width="18" height="18" viewBox="0 0 24 24"><path fill="#FF0000" d="M21.582,6.186c-0.23-0.854-0.908-1.532-1.762-1.762C18.254,4,12,4,12,4S5.746,4,4.18,4.424c-0.854,0.23-1.532,0.908-1.762,1.762C2,7.754,2,12,2,12s0,4.246,0.418,5.814c0.23,0.854,0.908,1.532,1.762,1.762C5.746,20,12,20,12,20s6.254,0,7.82-0.424c0.854-0.23,1.532-0.908,1.762-1.762C22,16.246,22,12,22,12S22,7.754,21.582,6.186z"></path><path fill="#FFFFFF" d="M10,15.464V8.536L16,12L10,15.464z"></path></svg></a>
+        </p>
+        <div class="container">
+            <!-- Colonne 1 : Paramètres -->
+            <div class="panel controls">
+                <h2>Paramètres</h2>
+                <h3>Source Laser</h3>
+                <div class="control-group">
+                    <label for="puissanceSlider">Puissance source (<i>P</i>)</label>
+                    <input type="range" id="puissanceSlider" min="1" max="20" value="10" step="0.1">
+                    <div id="puissanceValue" class="value-display"></div>
+                </div>
+                 <div class="control-group">
+                    <label for="initialBeamRadiusSlider">Rayon initial (<i>r</i>₀)</label>
+                    <input type="range" id="initialBeamRadiusSlider" min="2" max="25" value="12" step="0.5">
+                    <div id="initialBeamRadiusValue" class="value-display"></div>
+                </div>
+                <div class="control-group">
+                    <label for="divergenceSlider">Divergence</label>
+                    <input type="range" id="divergenceSlider" min="0" max="2" value="0" step="0.05">
+                    <div id="divergenceValue" class="value-display"></div>
+                </div>
+                
+                <h3>Capteur</h3>
+                <div class="toggle-switch-container">
+                    <label for="sensorToggle">Activer le capteur</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="sensorToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Colonne 2 : Simulation -->
+            <div class="panel simulation-container">
+                <canvas id="physicsCanvas" width="800" height="600"></canvas>
+                
+                <div class="overlay-panel overlay-top-left">
+                     <h3>Distance de Mesure</h3>
+                     <div class="control-group">
+                        <input type="range" id="distanceSlider" min="0" max="700" value="350" step="5">
+                        <div id="distanceValue" class="value-display"></div>
+                    </div>
+                </div>
+
+                <div id="sensorControlsOverlay" class="overlay-panel overlay-bottom-center">
+                     <h3>Paramètres du Capteur</h3>
+                     <div class="control-group">
+                        <label for="rayonCapteurSlider">Rayon (<i>r</i><sub>capt</sub>)</label>
+                        <input type="range" id="rayonCapteurSlider" min="2" max="75" value="25" step="1">
+                        <div id="rayonCapteurValue" class="value-display"></div>
+                    </div>
+                    <div class="control-group">
+                        <label for="angleSlider">Angle (<i>&theta;</i>)</label>
+                        <input type="range" id="angleSlider" min="-90" max="90" value="0" step="1">
+                        <div id="angleValue" class="value-display"></div>
+                    </div>
+                    <div class="control-group duration-control" id="durationGroup">
+                        <label>Durée (&Delta;<i>t</i>)</label>
+                        <div class="duration-selector">
+                            <input type="radio" id="duree_1s" name="duree" value="1" checked>
+                            <label for="duree_1s">1s</label>
+                            <input type="radio" id="duree_2s" name="duree" value="2">
+                            <label for="duree_2s">2s</label>
+                            <input type="radio" id="duree_10s" name="duree" value="10">
+                            <label for="duree_10s">10s</label>
+                            <input type="radio" id="duree_1min" name="duree" value="60">
+                            <label for="duree_1min">1min</label>
+                            <input type="radio" id="duree_1h" name="duree" value="3600">
+                            <label for="duree_1h">1h</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="sensorResultsOverlay" class="overlay-panel overlay-top-right">
+                    <div class="overlay-results-grid">
+                        <div class="result-item">
+                            <p class="result-title">Puissance Captée</p>
+                            <p class="formula"><i>P</i><sub>capt</sub> = <i>I</i> &middot; <i>A</i><sub>eff</sub></p>
+                            <div class="value-box-container">
+                                <span id="puissanceCapteeValue" class="value-box">...</span>
+                            </div>
+                        </div>
+                        <div class="result-item">
+                            <p class="result-title">Énergie Captée</p>
+                            <p class="formula"><i>E</i><sub>capt</sub> = <i>P</i><sub>capt</sub>&Delta;<i>t</i></p>
+                            <div class="value-box-container">
+                                <span id="energieValue" class="value-box">...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Colonne 3 : Résultats -->
+            <div class="panel results">
+                <h2>Résultats</h2>
+                <h3>Propriétés du Faisceau</h3>
+                <div class="result-item">
+                    <p class="result-title">Aire (à la distance <i>d</i>)</p>
+                    <p class="formula"><i>A</i><sub>faisc.</sub> = &pi;<i>r</i><sup>2</sup></p>
+                    <div class="value-box-container">
+                        <span id="aireFaisceauValue" class="value-box">...</span>
+                    </div>
+                </div>
+                <div class="result-item">
+                    <p class="result-title">Intensité (à la distance <i>d</i>)</p>
+                    <p class="formula"><i>I</i> = <i>P</i> / <i>A</i><sub>faisc.</sub></p>
+                    <div class="value-box-container">
+                        <span id="intensiteValue" class="value-box">...</span>
+                    </div>
+                </div>
+                
+                <div id="sensorResults">
+                    <h3>Mesures du Capteur</h3>
+                    <div class="result-item">
+                        <p class="result-title">Surface Effective</p>
+                        <p class="formula" id="aireEffectiveFormula"></p>
+                        <div class="value-box-container">
+                            <span id="aireEffectiveValue" class="value-box">...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p style="text-align: center; margin-top: 10px; color: var(--light-text-color); font-size: 12px; opacity: 0.7;">
+            Programmation réalisée avec l'aide de Google AI Studio.
+        </p>
+    </div>
+
+    <script>
+        // --- GET DOM ELEMENTS ---
+        const canvas = document.getElementById('physicsCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        const puissanceSlider = document.getElementById('puissanceSlider');
+        const initialBeamRadiusSlider = document.getElementById('initialBeamRadiusSlider');
+        const divergenceSlider = document.getElementById('divergenceSlider');
+        const distanceSlider = document.getElementById('distanceSlider');
+        const rayonCapteurSlider = document.getElementById('rayonCapteurSlider');
+        const angleSlider = document.getElementById('angleSlider');
+        const dureeRadios = document.querySelectorAll('input[name="duree"]');
+        const sensorToggle = document.getElementById('sensorToggle');
+
+        const sensorControlsOverlay = document.getElementById('sensorControlsOverlay');
+        const sensorResultsOverlay = document.getElementById('sensorResultsOverlay');
+        const sensorResults = document.getElementById('sensorResults');
+
+        const puissanceValueDisplay = document.getElementById('puissanceValue');
+        const initialBeamRadiusValueDisplay = document.getElementById('initialBeamRadiusValue');
+        const divergenceValueDisplay = document.getElementById('divergenceValue');
+        const distanceValueDisplay = document.getElementById('distanceValue');
+        const rayonCapteurValueDisplay = document.getElementById('rayonCapteurValue');
+        const angleValueDisplay = document.getElementById('angleValue');
+        
+        const aireFaisceauValue = document.getElementById('aireFaisceauValue');
+        const intensiteValue = document.getElementById('intensiteValue');
+        const puissanceCapteeValue = document.getElementById('puissanceCapteeValue');
+        const energieValue = document.getElementById('energieValue');
+        const aireEffectiveValue = document.getElementById('aireEffectiveValue');
+        const aireEffectiveFormula = document.getElementById('aireEffectiveFormula');
+
+        const PIXEL_TO_METER = 0.0002; 
+        const EMITTER_WIDTH = 40;
+        const V_PADDING = 50; 
+        const VISUAL_END_OFFSET_PX = 50;
+        
+        function formatWithSIPrefix(value, unit) {
+            if (value === 0) return `0.000 ${unit}`;
+            if (isNaN(value) || !isFinite(value)) return `...`;
+            const absVal = Math.abs(value);
+            const prefixes = { '1e9': 'G', '1e6': 'M', '1e3': 'k', '1': '', '1e-3': 'm', '1e-6': 'µ', '1e-9': 'n', '1e-12': 'p' };
+            const sortedKeys = Object.keys(prefixes).sort((a, b) => parseFloat(b) - parseFloat(a));
+            for (const pKey of sortedKeys) {
+                const pValue = parseFloat(pKey);
+                if (absVal >= pValue) {
+                    return `${(value / pValue).toFixed(3)} ${prefixes[pKey]}${unit}`;
+                }
+            }
+            return `${(value * 1e12).toFixed(3)} p${unit}`;
+        }
+        
+        function getOpacityFromIntensity(intensity) {
+            const logIntensity = Math.log10(intensity + 1);
+            const minLogIntensity = 0, maxLogIntensity = 4;
+            const minOpacity = 0.05, maxOpacity = 0.7;
+            const intensityFraction = Math.max(0, Math.min(1, (logIntensity - minLogIntensity) / (maxLogIntensity - minLogIntensity)));
+            return minOpacity + intensityFraction * (maxOpacity - minOpacity);
+        }
+
+        function draw() {
+            // --- 1. LECTURE DES INPUTS ET CALCULS PHYSIQUES ---
+            const puissance_mW = parseFloat(puissanceSlider.value);
+            const puissance = puissance_mW / 1000;
+            const initialBeamRadius_px = parseFloat(initialBeamRadiusSlider.value);
+            const divergence_deg = parseFloat(divergenceSlider.value);
+            const distance_px = parseFloat(distanceSlider.value);
+            const isSensorActive = sensorToggle.checked;
+            
+            const divergence_rad = divergence_deg * (Math.PI / 180);
+            const initialBeamRadius_m = initialBeamRadius_px * PIXEL_TO_METER;
+            const distance_m = distance_px * PIXEL_TO_METER;
+            
+            const beamRadiusAtDistance_m = initialBeamRadius_m + distance_m * Math.tan(divergence_rad);
+            const aireFaisceauAtDistance_m2 = Math.PI * Math.pow(beamRadiusAtDistance_m, 2);
+            const intensiteAtDistance = aireFaisceauAtDistance_m2 > 0 ? puissance / aireFaisceauAtDistance_m2 : 0;
+            
+            // --- 2. MISE À JOUR DES AFFICHAGES TEXTE ---
+            puissanceValueDisplay.innerHTML = `<span>${puissance_mW.toFixed(1)} mW</span>`;
+            initialBeamRadiusValueDisplay.innerHTML = `<span>${(initialBeamRadius_m*100).toFixed(2)} cm</span>`;
+            divergenceValueDisplay.innerHTML = `<span>${divergence_deg.toFixed(2)}°</span>`;
+            distanceValueDisplay.innerHTML = `<span>${(distance_m * 100).toFixed(1)} cm</span>`;
+            aireFaisceauValue.textContent = formatWithSIPrefix(aireFaisceauAtDistance_m2, 'm²');
+            intensiteValue.textContent = formatWithSIPrefix(intensiteAtDistance, 'W/m²');
+
+            // --- 3. DESSIN DU CANVAS (PARTIE 1: FOND ET FAISCEAU) ---
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const drawAreaHeight = canvas.height - 2 * V_PADDING;
+            const drawCenterY = V_PADDING + drawAreaHeight / 2;
+            const initialBeamDiameter_px = initialBeamRadius_px * 2;
+
+            const emitterY = drawCenterY - initialBeamRadius_px;
+            ctx.fillStyle = '#333';
+            ctx.fillRect(0, emitterY - 10, EMITTER_WIDTH, initialBeamDiameter_px + 20);
+            ctx.fillStyle = '#555';
+            ctx.fillRect(0, emitterY - 5, EMITTER_WIDTH - 10, initialBeamDiameter_px + 10);
+            
+            const initialArea_m2 = Math.PI * Math.pow(initialBeamRadius_m, 2);
+            const intensityAtStart = initialArea_m2 > 0 ? puissance / initialArea_m2 : 0;
+            const opacityAtStart = getOpacityFromIntensity(intensityAtStart);
+
+            const beamEndX = canvas.width - VISUAL_END_OFFSET_PX;
+            
+            const beamDrawDistance_m = (beamEndX - EMITTER_WIDTH) * PIXEL_TO_METER;
+            const beamRadiusAtEdge_m = initialBeamRadius_m + beamDrawDistance_m * Math.tan(divergence_rad);
+            const areaAtEdge_m2 = Math.PI * Math.pow(beamRadiusAtEdge_m, 2);
+            const intensityAtEdge = areaAtEdge_m2 > 0 ? puissance / areaAtEdge_m2 : 0;
+            const opacityAtEdge = getOpacityFromIntensity(intensityAtEdge);
+            const gradient = ctx.createLinearGradient(EMITTER_WIDTH, 0, beamEndX, 0);
+            gradient.addColorStop(0, `rgba(255, 80, 80, ${opacityAtStart})`);
+            gradient.addColorStop(1, `rgba(255, 80, 80, ${opacityAtEdge})`);
+
+            const beamRadiusAtEdge_px = beamRadiusAtEdge_m / PIXEL_TO_METER;
+            const beamDiameterAtEdge_px = beamRadiusAtEdge_px * 2;
+
+            const finalTopY = drawCenterY - beamRadiusAtEdge_px;
+            const finalBottomY = drawCenterY + beamRadiusAtEdge_px;
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.moveTo(EMITTER_WIDTH, emitterY); 
+            ctx.lineTo(beamEndX, finalTopY);
+            ctx.lineTo(beamEndX, finalBottomY);
+            ctx.lineTo(EMITTER_WIDTH, emitterY + initialBeamDiameter_px);
+            ctx.closePath();
+            ctx.fill();
+
+            const avgOpacity = (opacityAtStart + opacityAtEdge) / 2;
+            ctx.strokeStyle = `rgba(255, 150, 150, ${avgOpacity * 1.2})`;
+            ctx.lineWidth = 1;
+            const powerFractionLines = (puissance_mW - parseFloat(puissanceSlider.min)) / (parseFloat(puissanceSlider.max) - parseFloat(puissanceSlider.min));
+            const numBeamLines = Math.floor(4 + powerFractionLines * 16);
+            for (let i = 1; i < numBeamLines; i++) {
+                const lineFraction = i / numBeamLines;
+                const startY = emitterY + (lineFraction * initialBeamDiameter_px);
+                const endY = finalTopY + (lineFraction * beamDiameterAtEdge_px);
+                ctx.beginPath();
+                ctx.moveTo(EMITTER_WIDTH, startY);
+                ctx.lineTo(beamEndX, endY);
+                ctx.stroke();
+            }
+            
+            const measurementX = EMITTER_WIDTH + distance_px;
+
+            if (isSensorActive && distance_px < canvas.width - EMITTER_WIDTH) {
+                const rayonCapteur_px = parseFloat(rayonCapteurSlider.value);
+                const angle_deg = parseFloat(angleSlider.value);
+                const duree_s = parseFloat(document.querySelector('input[name="duree"]:checked').value);
+                const rayonCapteur_m = rayonCapteur_px * PIXEL_TO_METER;
+                const angle_rad = angle_deg * (Math.PI / 180);
+
+                const aireCapteur_m2 = Math.PI * Math.pow(rayonCapteur_m, 2);
+                const aireCapteurProjetee_m2 = aireCapteur_m2 * Math.pow(Math.cos(Math.abs(angle_rad)), 2);
+                
+                const aireEffective_m2 = Math.min(aireFaisceauAtDistance_m2, aireCapteurProjetee_m2);
+                const puissanceCaptee = intensiteAtDistance * aireEffective_m2;
+                const energieCaptee = puissanceCaptee * duree_s;
+                
+                if (aireCapteurProjetee_m2 >= aireFaisceauAtDistance_m2) {
+                    aireEffectiveFormula.innerHTML = `<i>A</i><sub>eff</sub> = <i>A</i><sub>faisc.</sub>`;
+                } else {
+                    aireEffectiveFormula.innerHTML = `<i>A</i><sub>eff</sub> = &pi;(<i>r</i><sub>capt</sub>&middot;cos<i>&theta;</i>)<sup>2</sup>`;
+                }
+                
+                aireEffectiveValue.textContent = formatWithSIPrefix(aireEffective_m2, 'm²');
+                rayonCapteurValueDisplay.innerHTML = `<span>${(rayonCapteur_m * 100).toFixed(2)} cm</span>`;
+                angleValueDisplay.innerHTML = `<span>${angle_deg.toFixed(0)}°</span>`;
+                puissanceCapteeValue.textContent = formatWithSIPrefix(puissanceCaptee, 'W');
+                energieValue.textContent = formatWithSIPrefix(energieCaptee, 'J');
+
+                // --- DESSIN DE L'OMBRE GÉOMÉTRIQUE ---
+                if (distance_px > 0) {
+                    const sinAngle = Math.sin(angle_rad);
+                    const cosAngle = Math.cos(angle_rad);
+
+                    const tip1X = measurementX + rayonCapteur_px * sinAngle;
+                    const tip1Y = drawCenterY - rayonCapteur_px * cosAngle;
+                    const tip2X = measurementX - rayonCapteur_px * sinAngle;
+                    const tip2Y = drawCenterY + rayonCapteur_px * cosAngle;
+
+                    const sensorTop = { x: tip1Y < tip2Y ? tip1X : tip2X, y: Math.min(tip1Y, tip2Y) };
+                    const sensorBottom = { x: tip1Y < tip2Y ? tip2X : tip1X, y: Math.max(tip1Y, tip2Y) };
+                    
+                    let shadowTopAtEdge, shadowBottomAtEdge;
+
+                    const denominatorTop = sensorTop.x - EMITTER_WIDTH;
+                    const denominatorBottom = sensorBottom.x - EMITTER_WIDTH;
+
+                    if (divergence_deg === 0 || Math.abs(denominatorTop) < 1e-6 || Math.abs(denominatorBottom) < 1e-6) {
+                        shadowTopAtEdge = sensorTop.y;
+                        shadowBottomAtEdge = sensorBottom.y;
+                    } else {
+                        const emitterCenterY = drawCenterY;
+                        const topSlope = (sensorTop.y - emitterCenterY) / denominatorTop;
+                        const bottomSlope = (sensorBottom.y - emitterCenterY) / denominatorBottom;
+                        shadowTopAtEdge = sensorTop.y + topSlope * (beamEndX - sensorTop.x);
+                        shadowBottomAtEdge = sensorBottom.y + bottomSlope * (beamEndX - sensorBottom.x);
+                    }
+                    
+                    ctx.fillStyle = '#16213e';
+                    ctx.beginPath();
+                    ctx.moveTo(sensorTop.x, sensorTop.y);
+                    ctx.lineTo(beamEndX, shadowTopAtEdge);
+                    ctx.lineTo(beamEndX, shadowBottomAtEdge);
+                    ctx.lineTo(sensorBottom.x, sensorBottom.y);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            } else {
+                 aireEffectiveFormula.innerHTML = `...`;
+                 aireEffectiveValue.textContent = '...';
+                 puissanceCapteeValue.textContent = '...';
+                 energieValue.textContent = '...';
+            }
+
+            // --- 4. DESSIN DU CANVAS (PARTIE 2: CAPTEUR ET LIGNES PAR-DESSUS) ---
+            ctx.save();
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 5]);
+            const lineHeight = 260;
+            ctx.moveTo(measurementX, drawCenterY - lineHeight / 2);
+            ctx.lineTo(measurementX, drawCenterY + lineHeight / 2);
+            ctx.stroke();
+            ctx.restore();
+
+            if (isSensorActive && distance_px < canvas.width - EMITTER_WIDTH) {
+                const sensorY = drawCenterY;
+                const rayonCapteur_px = parseFloat(rayonCapteurSlider.value);
+                const angle_rad = parseFloat(angleSlider.value) * (Math.PI / 180);
+                const diametreCapteur_px = rayonCapteur_px * 2;
+                
+                ctx.save();
+                ctx.translate(measurementX, sensorY); 
+                ctx.rotate(angle_rad);
+                ctx.fillStyle = 'white';
+                ctx.fillRect(-1, -rayonCapteur_px, 2, diametreCapteur_px);
+                const vectorLength = 30, arrowSize = 6;
+                ctx.beginPath(); ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)'; ctx.lineWidth = 1.5;
+                ctx.moveTo(0, 0); ctx.lineTo(-vectorLength, 0);
+                ctx.moveTo(-vectorLength, 0); ctx.lineTo(-vectorLength + arrowSize, -arrowSize);
+                ctx.moveTo(-vectorLength, 0); ctx.lineTo(-vectorLength + arrowSize, arrowSize);
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        const allControls = document.querySelectorAll('input[type="range"], input[type="radio"], input[type="checkbox"]');
+        allControls.forEach(control => {
+            control.addEventListener('input', draw);
+            control.addEventListener('change', draw);
+        });
+        
+        sensorToggle.addEventListener('change', () => {
+             const isChecked = sensorToggle.checked;
+             sensorControlsOverlay.classList.toggle('hidden', !isChecked);
+             sensorResultsOverlay.classList.toggle('hidden', !isChecked);
+             sensorResults.classList.toggle('hidden', !isChecked);
+        });
+        
+        window.onload = () => {
+            const isChecked = sensorToggle.checked;
+            sensorControlsOverlay.classList.toggle('hidden', !isChecked);
+            sensorResultsOverlay.classList.toggle('hidden', !isChecked);
+            sensorResults.classList.toggle('hidden', !isChecked);
+            draw();
+        };
+    </script>
+</body>
+</html>

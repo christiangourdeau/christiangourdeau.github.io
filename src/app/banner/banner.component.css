@@ -1,0 +1,19 @@
+.jumbotron {
+  display: flex;
+  justify-content: space-between; /* Pousse l'image à droite et centre le texte */
+  align-items: center;
+  background: linear-gradient(to right, rgba(255, 0, 0, 0.801), rgba(255, 255, 255, 0));
+  background-size: cover;
+  background-position: center;
+  height: 150px;
+  color: black;
+}
+
+.text-container {
+  flex: 1; /* Permet au texte de prendre l'espace central */
+  text-align: center; /* Centre le texte horizontalement */
+}
+
+.logo {
+  margin-left: auto; /* Assure que l'image est poussée à droite */
+}
