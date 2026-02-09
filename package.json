@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "deploy": "npx angular-cli-ghpages --dir=dist",
+    "build&deploy": "npm run build && npm run deploy"
   },
   "private": true,
   "dependencies": {
